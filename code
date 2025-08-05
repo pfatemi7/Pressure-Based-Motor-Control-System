@@ -1,0 +1,128 @@
+#include <AFMotor.h>
+String user_input="";
+char Incoming_value = 0; 
+AF_DCMotor m1(1);
+AF_DCMotor m3(3);
+
+int fsrpin=0;
+int fsrReading;
+int fsrVoltage;
+
+unsigned long fsrResistance;
+unsigned long fsrConductance;
+long fsrForce;
+const int sensorPin = A0;
+const float calibrationOffset = 1.16;
+
+int piezoPin = A5; 
+int piezoValue; 
+
+unsigned long startTime; 
+
+void setup() 
+{
+  Serial.begin(9600);         
+  
+  m1.setSpeed(0);
+  m3.setSpeed(0);
+}
+
+void loop()
+{
+  int sensorValue = analogRead(sensorPin);
+  float voltage = sensorValue * (5.0 / 1023.0); 
+  float pressure_psi = (voltage - 0.5) * (10/4); // pressure in psi
+  float pressure_mmHg = pressure_psi * 51.7149; // convert psi to mmHg
+
+  pressure_mmHg += calibrationOffset; // add the calibration offset
+
+  Serial.print("Pressure: ");
+  Serial.print(pressure_mmHg);
+  Serial.println(" mmHg");
+
+  delay(500); 
+
+  if(Serial.available() > 0)  
+  {
+    Incoming_value = Serial.read();     
+    Serial.print(Incoming_value);       
+    Serial.print("\t");        
+    if (Incoming_value == '1') {
+    Serial.println(pressure_mmHg);
+    m1.setSpeed(speed(100));
+    bool runningBackward = true;
+
+    startTime = millis(); 
+
+    while (runningBackward) {
+        int sensorValue = analogRead(sensorPin);
+        float voltage = sensorValue * (5.0 / 1023.0); 
+        float pressure_psi = (voltage - 0.5) * (10/4); // pressure in psi
+        float pressure_mmHg = pressure_psi * 51.7149; // convert psi to mmHg
+        pressure_mmHg += calibrationOffset; // add the calibration offset
+
+        Serial.print("Pressure: ");
+        Serial.print(pressure_mmHg);
+        Serial.println(" mmHg");
+
+        if (pressure_mmHg > 0) {
+            m1.run(BACKWARD);
+            delay(500);
+        } else {
+            runningBackward = false;
+            unsigned long duration = millis() - startTime; 
+            Serial.print("Duration: ");
+            Serial.print(duration);
+            Serial.println(" ms");
+        }
+    }
+
+    m1.run(RELEASE); 
+}
+    else if(Incoming_value == '2')       
+      {
+       Serial.println(pressure_mmHg);
+       m1.setSpeed(speed(100));
+       bool runningForward = true;
+
+       startTime = millis(); 
+
+       while (runningForward) {
+        int sensorValue = analogRead(sensorPin);
+        float voltage = sensorValue * (5.0 / 1023.0); 
+        float pressure_psi = (voltage - 0.5) * (10/4); // pressure in psi
+        float pressure_mmHg = pressure_psi * 51.7149; // convert psi to mmHg
+        pressure_mmHg += calibrationOffset; 
+
+        Serial.print("Pressure: ");
+        Serial.print(pressure_mmHg);
+        Serial.println(" mmHg");
+
+         if (pressure_mmHg < 100) {
+            m1.run(FORWARD);
+            delay(500);
+          }
+          else {
+            runningForward = false;
+            unsigned long duration = millis() - startTime; 
+            Serial.print("Duration: ");
+            Serial.print(duration);
+            Serial.println(" ms");
+          }
+        }  
+
+        m1.run(RELEASE);     
+      }
+    else if(Incoming_value == '0')       
+      {
+      Serial.print(Incoming_value);
+      m1.run(RELEASE);
+      delay(500);
+    }  
+  }
+}
+
+int speed(int b)
+{
+  return map(b, 0, 100, 0, 255);
+}
