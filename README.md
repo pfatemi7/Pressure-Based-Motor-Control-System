@@ -21,7 +21,7 @@ This project reads pressure values from an analog sensor (like a pressure transd
 -  Adafruit Motor Shield (v1)
 -  One or two DC motors (connected to M1 and M3)
 -  Analog pressure sensor (e.g., MPX5010 or similar) connected to A0
--  Optional: Piezoelectric sensor on A5 (currently unused)
+-  Piezoelectric sensor 
 -  Jumper wires, breadboard, power supply
 
 ---
