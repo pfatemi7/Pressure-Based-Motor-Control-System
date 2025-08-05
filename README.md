@@ -40,6 +40,4 @@ This project reads pressure values from an analog sensor (like a pressure transd
 
 ##  Calibration Note
 
-This line:
-```cpp
 const float calibrationOffset = 1.16;
